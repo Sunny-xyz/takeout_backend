@@ -38,6 +38,7 @@ Start the FastAPI Server with Uvicorn:
    ```
 - The server will be running at http://127.0.0.1:8000.
 - Access the interactive API documentation at http://127.0.0.1:8000/docs to test the endpoints.
+- You can test the LLM functionality at http://127.0.0.1:8000/test-llm to ensure responses are being generated correctly. This endpoint sends a simple greeting prompt to the LLM and returns the generated output.
 
 ## API Endpoints
 
