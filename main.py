@@ -48,32 +48,18 @@ async def read_root():
 # Endpoint to generate recommendations using the LLM
 @app.post("/recommendations", response_model=RecommendationResponse)
 async def generate_recommendations(request: RecommendationRequest):
-    # Refined prompt instructing the model to output only valid JSON
     prompt = (
         "User preferences: " + ", ".join(request.preferences) + ". " +
-        "Based on these preferences, output a JSON array of exactly 3 takeout restaurant recommendations. " +
-        "Each recommendation must be a JSON object with exactly two keys: 'name' and 'description'. " +
-        "Return only the JSON array with no additional text."
+        "Based on these preferences, provide a list of 3 takeout restaurant recommendations, each with a brief description."
     )
     logger.info("LLM prompt: %s", prompt)
     llm_output = await get_llm_response(prompt)
     logger.info("LLM raw output: %s", llm_output)
     
-    try:
-        # Try to parse the output directly as JSON
-        recommendations = json.loads(llm_output)
-        # Optionally, validate that it's a list of exactly 3 items
-        if not (isinstance(recommendations, list) and len(recommendations) == 3):
-            raise ValueError("Invalid recommendation list length")
-    except (json.JSONDecodeError, ValueError) as e:
-        logger.error("Error decoding LLM response: %s", e)
-        # Fallback: Provide a default response
-        recommendations = [
-            {"name": "Default Restaurant 1", "description": "A popular choice with excellent reviews."},
-            {"name": "Default Restaurant 2", "description": "Known for its quick service and tasty meals."},
-            {"name": "Default Restaurant 3", "description": "Offers a variety of vegan options."},
-        ]
-    return RecommendationResponse(recommendations=[f"{rec['name']}: {rec['description']}" for rec in recommendations])
+    # Return raw output as a single string in a list.
+    recommendations = [llm_output.strip()]
+    return RecommendationResponse(recommendations=recommendations)
+
 
 @app.get("/test-llm")
 async def test_llm():
