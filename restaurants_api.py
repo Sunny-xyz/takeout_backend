@@ -1,5 +1,11 @@
 import json
-from fastapi import HTTPException
+from fastapi import FastAPI, HTTPException
+
+app = FastAPI()
+
+@app.get("/")
+def read_root():
+    return {"message": "Hello from the Restaurant API!"}
 
 try:
     with open("export.geojson", "r") as f:
