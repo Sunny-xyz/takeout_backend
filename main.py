@@ -8,6 +8,7 @@ from typing import List
 from concurrent.futures import ThreadPoolExecutor
 from transformers import pipeline
 from dotenv import load_dotenv
+import httpx  # Added to call the Restaurant API
 
 # Load environment variables
 load_dotenv()
@@ -45,12 +46,43 @@ async def get_llm_response(prompt: str) -> str:
 async def read_root():
     return {"message": "Hello from the LLM integration endpoint!"}
 
-# Endpoint to generate recommendations using the LLM
+# Updated endpoint to generate recommendations using the LLM and restaurant data
 @app.post("/recommendations", response_model=RecommendationResponse)
 async def generate_recommendations(request: RecommendationRequest):
+    # Fetch restaurant data from the Restaurant API
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.get("http://127.0.0.1:8002/restaurants")
+            response.raise_for_status()
+            restaurants = response.json()
+        except Exception as e:
+            logger.error("Error fetching restaurants: %s", e)
+            restaurants = []
+    
+    # Filter restaurants based on user preferences by checking the 'cuisine' part
+    matching_restaurants = []
+    for feature in restaurants:
+        cuisine = feature.get("properties", {}).get("cuisine", "").lower()
+        for pref in request.preferences:
+            if pref.lower() in cuisine:
+                matching_restaurants.append(feature)
+                break  # Avoids duplicate matches
+
+    # Limits us to a few matches for context in the prompt
+    sample_restaurants = matching_restaurants[:5]
+    if sample_restaurants:
+        restaurant_info = "; ".join(
+            f"{r.get('properties', {}).get('name', 'Unknown')} ({r.get('properties', {}).get('cuisine', 'Unknown')})"
+            for r in sample_restaurants
+        )
+    else:
+        restaurant_info = "No matching restaurants found."
+    
+    # The prompt
     prompt = (
         "User preferences: " + ", ".join(request.preferences) + ". " +
-        "Based on these preferences, provide a list of 3 takeout restaurant recommendations, each with a brief description."
+        "Based on these preferences, provide a list of 3 takeout restaurant recommendations, each with a brief description. " +
+        "Consider the following available restaurants: " + restaurant_info
     )
     logger.info("LLM prompt: %s", prompt)
     llm_output = await get_llm_response(prompt)
