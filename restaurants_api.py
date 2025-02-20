@@ -13,3 +13,9 @@ try:
 except Exception as e:
     restaurant_data = None
     print("Error loading restaurant data:", e)
+
+@app.get("/restaurants")
+def get_restaurants():
+    if restaurant_data and "features" in restaurant_data:
+        return restaurant_data["features"]
+    raise HTTPException(status_code=500, detail="Restaurant data not available.")
