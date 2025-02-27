@@ -9,9 +9,10 @@ class RecommendationsController < ApplicationController
         
         payload = { preferences: pref_array }
 
-        response = HTTParty.post("https://127.0.0.1:8000/recommendations",
-                                body = payload.to_json,
-                                headers: { 'Content-Type' => 'application/json' })
+        response = HTTParty.post("http://127.0.0.1:8000/recommendations",
+        body: payload.to_json,
+        headers: { 'Content-Type' => 'application/json' })
+
 
         if response.success?
             @recommendations = response.parsed_response["recommendations"]
