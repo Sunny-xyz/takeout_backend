@@ -1,4 +1,4 @@
-class RceommendationsController < ApplicationController 
+class RecommendationsController < ApplicationController
     require 'httparty'
 
     def new; end
@@ -19,6 +19,6 @@ class RceommendationsController < ApplicationController
             @recommendations = ["Error fetching recommendations"]
         end
 
-    render: new
+      render :new
     end
-end
+  end
