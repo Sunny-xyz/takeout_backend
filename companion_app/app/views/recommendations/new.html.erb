@@ -1,13 +1,14 @@
-<h1>Restaurant Recommendations</h1>
+<% content_for :page_title, "Restaurant Recommendations" %>
 
 <%= form_with url: recommendations_path, method: :post, local: true do |form| %>
   <div>
-    <%= form.label :preferences, "Enter your preferences (comma separated):" %><br>
-    <%= form.text_field :preferences, placeholder: "e.g., indian, delivery" %>
-  </div>
-  <div>
-    <%= form.submit "Get Recommendations" %>
-  </div>
+  <%= render "govuk_publishing_components/components/input", {
+        label: { text: "Enter your Preferences (separated by comma)" },
+        name: "preferences",
+      } %>
+<div class="govuk-form-group">
+  <%= render "govuk_publishing_components/components/button", { text: "Submit", type: "submit" } %>
+</div>
 <% end %>
 
 <% if @recommendations.present? %>
