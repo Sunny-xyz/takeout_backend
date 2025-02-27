@@ -3,7 +3,17 @@
   product_name: "API Companion",
   browser_title: yield(:page_title)
 } do %>
-  <%= render "govuk_publishing_components/components/layout_header", environment: "development" %>
+  <%= render "govuk_publishing_components/components/layout_header", {
+    environment: "development",
+    navigation_items: [
+      {
+        text: "Restaurants",
+        href: restaurants_path,
+        active: current_page?(restaurants_path)
+      }
+      # Add more items as desired.
+    ]
+  } %>
   <div class="govuk-width-container">
     <% if content_for?(:back_link) %>
       <%= render "govuk_publishing_components/components/back_link", href: yield(:back_link) %>
