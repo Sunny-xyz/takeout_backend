@@ -1,0 +1,23 @@
+ // supporting sass
+ @import "govuk_publishing_components/govuk_frontend_support";
+ @import "govuk_publishing_components/component_support";
+ // component specific sass
+ @import "govuk_publishing_components/components/back-link";
+ @import "govuk_publishing_components/components/button";
+ @import "govuk_publishing_components/components/layout-for-admin";
+ @import "govuk_publishing_components/components/layout-header";
+ @import "govuk_publishing_components/components/input";
+ @import "govuk_publishing_components/components/layout-footer";
+ @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  
+  .govuk-spinner {
+    animation: spin 1s linear infinite;
+  }
+  

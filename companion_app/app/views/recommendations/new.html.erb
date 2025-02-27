@@ -1,0 +1,46 @@
+<% content_for :page_title, "Restaurant Recommendations" %>
+
+<%= form_with url: recommendations_path, method: :post, local: true, html: { id: "recommendation-form" } do |form| %>
+  <div>
+  <%= render "govuk_publishing_components/components/input", {
+        label: { text: "Enter your Preferences (separated by comma)" },
+        name: "preferences",
+      } %>
+  </div>
+<div class="govuk-form-group">
+  <%= render "govuk_publishing_components/components/button", { text: "Submit", type: "submit" } %>
+</div>
+<% end %>
+
+<!-- GOV.UK styled loading indicator (hidden by default) -->
+<div id="loading" class="govuk-!-margin-top-3" style="display:none;">
+  <div class="govuk-visually-hidden">Loading recommendations…</div>
+  <div class="loading-container" style="display: flex; align-items: center; gap: 0.5rem; height: 40px;">
+    <svg class="govuk-spinner" width="40" height="40" viewBox="0 0 40 40" role="img" aria-labelledby="loading-title">
+      <title id="loading-title">Loading</title>
+      <circle cx="20" cy="20" r="18" fill="none" stroke="currentColor" stroke-width="4" stroke-dasharray="28.2743 28.2743"></circle>
+    </svg>
+    <span class="loading-text" style="font-size: 1.5rem; line-height: 40px;">
+      Loading recommendations…
+    </span>
+  </div>
+</div>
+
+
+<% if @recommendations.present? %>
+  <h2 class="govuk-heading-m">Recommendations:</h2>
+  <ul class="govuk-list">
+    <% @recommendations.each do |recommendation| %>
+      <li><%= recommendation %></li>
+    <% end %>
+  </ul>
+<% end %>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    var form = document.getElementById("recommendation-form");
+    form.addEventListener("submit", function() {
+      document.getElementById("loading").style.display = "block";
+    });
+  });
+</script>
