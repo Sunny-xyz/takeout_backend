@@ -2,6 +2,7 @@ import os
 import json
 import asyncio
 import logging
+import re
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import List
@@ -41,6 +42,30 @@ async def get_llm_response(prompt: str) -> str:
     # Return the generated text from the first result
     return result[0]['generated_text']
 
+# Helper function to post-process the LLM output based on our available restaurant names
+def post_process_llm_output(llm_output: str, restaurant_names: list) -> list:
+    recommendations = []
+    # Try splitting the output by newlines and check for known restaurant names.
+    for line in llm_output.split('\n'):
+        for name in restaurant_names:
+            if name.lower() in line.lower():
+                cleaned_line = line.strip()
+                if cleaned_line and cleaned_line not in recommendations:
+                    recommendations.append(cleaned_line)
+                break
+    # Fallback: if we haven't found enough recommendations, try splitting by sentences.
+    if len(recommendations) < 3:
+        for sentence in re.split(r'[.!?]', llm_output):
+            for name in restaurant_names:
+                if name.lower() in sentence.lower():
+                    cleaned_sentence = sentence.strip()
+                    if cleaned_sentence and cleaned_sentence not in recommendations:
+                        recommendations.append(cleaned_sentence)
+                    break
+            if len(recommendations) >= 3:
+                break
+    return recommendations[:3] if recommendations else [llm_output.strip()]
+
 # Root endpoint for a simple health-check
 @app.get("/")
 async def read_root():
@@ -75,9 +100,11 @@ async def generate_recommendations(request: RecommendationRequest):
             f"{r.get('properties', {}).get('name', 'Unknown')} ({r.get('properties', {}).get('cuisine', 'Unknown')})"
             for r in sample_restaurants
         )
+        # Keep a list of restaurant names for post-processing.
+        restaurant_names = [r.get('properties', {}).get('name', 'Unknown') for r in sample_restaurants]
     else:
         restaurant_info = "No matching restaurants found."
-    
+        restaurant_names = []
     # The prompt
     prompt = (
         "User preferences: " + ", ".join(request.preferences) + ". " +
@@ -88,8 +115,8 @@ async def generate_recommendations(request: RecommendationRequest):
     llm_output = await get_llm_response(prompt)
     logger.info("LLM raw output: %s", llm_output)
     
-    # Return raw output as a single string in a list.
-    recommendations = [llm_output.strip()]
+    # Post-process the LLM output to better match our available restaurants.
+    recommendations = post_process_llm_output(llm_output, restaurant_names)
     return RecommendationResponse(recommendations=recommendations)
 
 
