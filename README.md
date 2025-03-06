@@ -7,13 +7,15 @@ This project is a FastAPI-based backend that provides takeout restaurant recomme
 - **FastAPI Backend:** Provides API endpoints for recommendations.
 - **LLM Integration:** Uses a free Hugging Face model (GPT-Neo) to generate restaurant recommendations.
 - **Structured Output:** Returns recommendations in a structured JSON format.
+- **Companion App:** A Rails companion app that allows users to test endpoints and the LLM response
 
 ## Prerequisites
 
 - Python 3.8 or later
 - pip
-
-## Installation
+- Ruby: Version 2.7 or later.
+- Rails: Version 6.0 or later.
+- SQLite3: The default database used by Rails.## Installation
 
 1. **Clone the Repository:**
 
@@ -40,6 +42,13 @@ Start the FastAPI Server with Uvicorn:
 - Access the interactive API documentation at http://127.0.0.1:8000/docs to test the endpoints.
 - You can test the LLM functionality at http://127.0.0.1:8000/test-llm to ensure responses are being generated correctly. This endpoint sends a simple greeting prompt to the LLM and returns the generated output.
 
+
+Starting the Rails server:
+
+Run:
+   ```
+   ./bin/dev/
+   ```
 ## API Endpoints
 
 ### GET /
