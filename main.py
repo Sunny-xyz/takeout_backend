@@ -11,7 +11,6 @@ from transformers import pipeline
 from dotenv import load_dotenv
 import httpx  # Added to call the Restaurant API
 
-# Load environment variables
 load_dotenv()
 
 # Set up logging and FastAPI app
@@ -19,20 +18,16 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 app = FastAPI()
 
-# Initialize the Hugging Face text-generation pipeline with GPT-Neo (free model)
 llm_pipeline = pipeline("text-generation", model="EleutherAI/gpt-neo-125M")
 
-# Set up a thread pool executor for running blocking LLM calls
 executor = ThreadPoolExecutor(max_workers=3)
 
-# Define Pydantic models for the recommendation request and response
 class RecommendationRequest(BaseModel):
     preferences: List[str]  # e.g., ["spicy", "fast service", "vegan options"]
 
 class RecommendationResponse(BaseModel):
     recommendations: List[str]
 
-# Helper function to call the LLM asynchronously
 async def get_llm_response(prompt: str) -> str:
     loop = asyncio.get_event_loop()
     result = await loop.run_in_executor(
@@ -66,7 +61,6 @@ def post_process_llm_output(llm_output: str, restaurant_names: list) -> list:
                 break
     return recommendations[:3] if recommendations else [llm_output.strip()]
 
-# Root endpoint for a simple health-check
 @app.get("/")
 async def read_root():
     return {"message": "Hello from the LLM integration endpoint!"}
@@ -105,7 +99,7 @@ async def generate_recommendations(request: RecommendationRequest):
     else:
         restaurant_info = "No matching restaurants found."
         restaurant_names = []
-    # The prompt
+
     prompt = (
         "User preferences: " + ", ".join(request.preferences) + ". " +
         "Based on these preferences, provide a list of 3 takeout restaurant recommendations, each with a brief description. " +
@@ -126,7 +120,6 @@ async def test_llm():
     output = await get_llm_response(prompt)
     return {"prompt": prompt, "output": output}
 
-# Entry point for running the app using Uvicorn
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
