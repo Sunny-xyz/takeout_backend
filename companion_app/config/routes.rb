@@ -4,4 +4,6 @@ Rails.application.routes.draw do
   mount GovukPublishingComponents::Engine, at: "/component-guide" if Rails.env.development?
   
   resources :restaurants, only: [:index, :show]
+  
+  get 'openai/recommendations', to: 'openai#recommendations'
 end
