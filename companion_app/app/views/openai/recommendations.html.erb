@@ -1,0 +1,13 @@
+<h1>Restaurant Recommendations from OpenAI</h1>
+
+<% if @recommendations.present? %>
+  <ul>
+    <% @recommendations.each do |recommendation| %>
+      <li><%= recommendation %></li>
+    <% end %>
+  </ul>
+<% else %>
+  <p>No recommendations found.</p>
+<% end %>
+
+<%= link_to "Back", root_path %>
