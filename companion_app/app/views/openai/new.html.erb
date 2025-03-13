@@ -1,0 +1,10 @@
+<h1>Test OpenAI Recommendations</h1>
+<%= form_with url: openai_recommendations_path, method: :post, local: true do |form| %>
+  <div>
+    <%= form.label :preferences, "Enter your Preferences (comma-separated)" %>
+    <%= form.text_field :preferences, placeholder: "e.g., spicy, vegan" %>
+  </div>
+  <div>
+    <%= form.submit "Get Recommendations" %>
+  </div>
+<% end %>

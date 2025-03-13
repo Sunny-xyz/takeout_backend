@@ -1,5 +1,4 @@
-<h1>Restaurant Recommendations from OpenAI</h1>
-
+<h1>OpenAI Recommendations</h1>
 <% if @recommendations.present? %>
   <ul>
     <% @recommendations.each do |recommendation| %>
@@ -7,7 +6,6 @@
     <% end %>
   </ul>
 <% else %>
-  <p>No recommendations found.</p>
+  <p>No recommendations were returned.</p>
 <% end %>
-
-<%= link_to "Back", root_path %>
+<%= link_to "Back", new_openai_path %>
