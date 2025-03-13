@@ -3,7 +3,7 @@ class RestaurantsController < ApplicationController
   
 def index
   begin
-    response = HTTParty.get("http://127.0.0.1:8002/restaurants")
+    responsecd = HTTParty.get("http://127.0.0.1:8002/restaurants")
     Rails.logger.debug "Restaurant API raw response: #{response.parsed_response.inspect}"
     @raw_response = response.parsed_response
   rescue => e

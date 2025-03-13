@@ -1,0 +1,11 @@
+<h1>OpenAI Recommendations</h1>
+<% if @recommendations.present? %>
+  <ul>
+    <% @recommendations.each do |recommendation| %>
+      <li><%= recommendation %></li>
+    <% end %>
+  </ul>
+<% else %>
+  <p>No recommendations were returned.</p>
+<% end %>
+<%= link_to "Back", new_openai_path %>
