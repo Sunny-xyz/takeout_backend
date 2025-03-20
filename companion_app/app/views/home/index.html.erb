@@ -1,2 +1,22 @@
-<h1>Home#index</h1>
-<p>Find me in app/views/home/index.html.erb</p>
+<% content_for :page_title, "Welcome to the Restaurant Recommendation app!" %>
+
+
+<div class="landing-page">
+  <section class="description">
+    <div class="govuk-width-container">
+      <p class="govuk-body-l">Get personalized takeout recommendations with just a few clicks. Find the best local restaurants tailored to your taste!</p>
+      <%= link_to "Get Started", new_recommendation_path, class: "govuk-button" %>
+    </div>
+  </section>
+
+  <section class="how-it-works">
+    <div class="govuk-width-container">
+      <h2 class="govuk-heading-m">How It Works</h2>
+      <ol class="govuk-list govuk-list--number">
+        <li>Set your preferences.</li>
+        <li>Our system fetches matching restaurant data.</li>
+        <li>Receive personalized recommendations.</li>
+      </ol>
+    </div>
+  </section>
+</div>
