@@ -2,70 +2,43 @@ import os
 import json
 import asyncio
 import logging
-import re
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import List
-from concurrent.futures import ThreadPoolExecutor
-from transformers import pipeline
 from dotenv import load_dotenv
-import httpx  # Added to call the Restaurant API
+import httpx
 
+# Load environment variables
 load_dotenv()
 
-# Set up logging and FastAPI app
+# Configure logging and FastAPI
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 app = FastAPI()
 
-llm_pipeline = pipeline("text-generation", model="EleutherAI/gpt-neo-125M")
+# Choose which LLM implementation to use based on the environment variable USE_OPENAI.
+USE_OPENAI = os.getenv("USE_OPENAI", "true").lower() in ["true", "1"]
 
-executor = ThreadPoolExecutor(max_workers=3)
+if USE_OPENAI:
+    from openai_llm import get_llm_response
+    logger.info("Using OpenAI LLM")
+else:
+    from local_llm import get_llm_response
+    logger.info("Using Local LLM")
 
+# Define request/response models
 class RecommendationRequest(BaseModel):
-    preferences: List[str]  # e.g., ["spicy", "fast service", "vegan options"]
+    preferences: List[str]  # e.g., ["indian", "vegan"]
 
 class RecommendationResponse(BaseModel):
     recommendations: List[str]
 
-async def get_llm_response(prompt: str) -> str:
-    loop = asyncio.get_event_loop()
-    result = await loop.run_in_executor(
-        executor,
-        lambda: llm_pipeline(prompt, max_length=200, do_sample=True, temperature=0.7)
-    )
-    # Return the generated text from the first result
-    return result[0]['generated_text']
-
-# Helper function to post-process the LLM output based on our available restaurant names
-def post_process_llm_output(llm_output: str, restaurant_names: list) -> list:
-    recommendations = []
-    # Try splitting the output by newlines and check for known restaurant names.
-    for line in llm_output.split('\n'):
-        for name in restaurant_names:
-            if name.lower() in line.lower():
-                cleaned_line = line.strip()
-                if cleaned_line and cleaned_line not in recommendations:
-                    recommendations.append(cleaned_line)
-                break
-    # Fallback: if we haven't found enough recommendations, try splitting by sentences.
-    if len(recommendations) < 3:
-        for sentence in re.split(r'[.!?]', llm_output):
-            for name in restaurant_names:
-                if name.lower() in sentence.lower():
-                    cleaned_sentence = sentence.strip()
-                    if cleaned_sentence and cleaned_sentence not in recommendations:
-                        recommendations.append(cleaned_sentence)
-                    break
-            if len(recommendations) >= 3:
-                break
-    return recommendations[:3] if recommendations else [llm_output.strip()]
-
+# Root endpoint for health-check
 @app.get("/")
 async def read_root():
-    return {"message": "Hello from the LLM integration endpoint!"}
+    return {"message": "Hello from our recommendations API!"}
 
-# Updated endpoint to generate recommendations using the LLM and restaurant data
+# Endpoint to generate recommendations
 @app.post("/recommendations", response_model=RecommendationResponse)
 async def generate_recommendations(request: RecommendationRequest):
     # Fetch restaurant data from the Restaurant API
@@ -77,42 +50,39 @@ async def generate_recommendations(request: RecommendationRequest):
         except Exception as e:
             logger.error("Error fetching restaurants: %s", e)
             restaurants = []
-    
-    # Filter restaurants based on user preferences by checking the 'cuisine' part
+
+    # Filter restaurants based on user preferences (by cuisine)
     matching_restaurants = []
     for feature in restaurants:
         cuisine = feature.get("properties", {}).get("cuisine", "").lower()
         for pref in request.preferences:
             if pref.lower() in cuisine:
                 matching_restaurants.append(feature)
-                break  # Avoids duplicate matches
+                break  # Avoid duplicate matches
 
-    # Limits us to a few matches for context in the prompt
+    # Prepare restaurant context
     sample_restaurants = matching_restaurants[:5]
     if sample_restaurants:
         restaurant_info = "; ".join(
             f"{r.get('properties', {}).get('name', 'Unknown')} ({r.get('properties', {}).get('cuisine', 'Unknown')})"
             for r in sample_restaurants
         )
-        # Keep a list of restaurant names for post-processing.
-        restaurant_names = [r.get('properties', {}).get('name', 'Unknown') for r in sample_restaurants]
     else:
         restaurant_info = "No matching restaurants found."
-        restaurant_names = []
 
+    # Build prompt for the LLM
     prompt = (
         "User preferences: " + ", ".join(request.preferences) + ". " +
         "Based on these preferences, provide a list of 3 takeout restaurant recommendations, each with a brief description. " +
-        "Consider the following available restaurants: " + restaurant_info
+        "Consider ONLY the following available restaurants: " + restaurant_info
     )
     logger.info("LLM prompt: %s", prompt)
-    llm_output = await get_llm_response(prompt)
-    logger.info("LLM raw output: %s", llm_output)
-    
-    # Post-process the LLM output to better match our available restaurants.
-    recommendations = post_process_llm_output(llm_output, restaurant_names)
-    return RecommendationResponse(recommendations=recommendations)
 
+    # Generate response from the chosen LLM
+    llm_output = await get_llm_response(prompt)
+    logger.info("LLM output: %s", llm_output)
+
+    return RecommendationResponse(recommendations=[llm_output])
 
 @app.get("/test-llm")
 async def test_llm():
