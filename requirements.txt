@@ -1,0 +1,6 @@
+transformers
+uvicorn
+fastapi
+python-dotenv
+httpx
+torch
