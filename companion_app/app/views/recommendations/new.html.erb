@@ -28,8 +28,8 @@
 
 
 <% if @recommendations.present? %>
-  <h2 class="govuk-heading-m">Recommendations:</h2>
-  <ul class="govuk-list">
+  <h2 id="recommendations-heading" class="govuk-heading-m fade-in">Recommendations:</h2>
+  <ul id="recommendations-list" class="govuk-list fade-in">
     <% @recommendations.each do |recommendation| %>
       <li><%= recommendation %></li>
     <% end %>
@@ -44,3 +44,21 @@
     });
   });
 </script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    var form = document.getElementById("recommendation-form");
+    form.addEventListener("submit", function() {
+      document.getElementById("loading").style.display = "block";
+    });
+    
+    var heading = document.getElementById("recommendations-heading");
+    var recommendationsList = document.getElementById("recommendations-list");
+    
+    setTimeout(function() {
+      if (heading) { heading.classList.add("visible"); }
+      if (recommendationsList) { recommendationsList.classList.add("visible"); }
+    }, 100);
+  });
+</script>
+
