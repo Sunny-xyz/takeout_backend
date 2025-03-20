@@ -1,6 +1,6 @@
 class RestaurantsController < ApplicationController
-    require 'httparty'
-  
+    require "httparty"
+
 def index
   begin
     response = HTTParty.get("http://127.0.0.1:8002/restaurants")
@@ -13,8 +13,8 @@ def index
   end
 end
 
-      
-      
+
+
 def show
     restaurant_id = params[:id]
     begin
@@ -28,4 +28,3 @@ def show
       end
     end
 end
-  
