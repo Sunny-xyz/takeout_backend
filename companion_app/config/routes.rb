@@ -1,5 +1,6 @@
 Rails.application.routes.draw do
-  root "recommendations#new"
+  get "home/index"
+  root "home#index"
   resources :recommendations, only: [ :new, :create ]
   mount GovukPublishingComponents::Engine, at: "/component-guide" if Rails.env.development?
 
