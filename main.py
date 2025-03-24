@@ -4,7 +4,7 @@ import asyncio
 import logging
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 from dotenv import load_dotenv
 import httpx
 
@@ -26,19 +26,24 @@ else:
     from local_llm import get_llm_response
     logger.info("Using Local LLM")
 
-# Define request/response models
+# Define a structured recommendation model
+class RecommendationItem(BaseModel):
+    name: str
+    short_description: str
+    highlight: str
+
+# Define the response model (list of items)
+class RecommendationResponse(BaseModel):
+    recommendations: List[RecommendationItem]
+
+# Request model
 class RecommendationRequest(BaseModel):
     preferences: List[str]  # e.g., ["indian", "vegan"]
 
-class RecommendationResponse(BaseModel):
-    recommendations: List[str]
-
-# Root endpoint for health-check
 @app.get("/")
 async def read_root():
     return {"message": "Hello from our recommendations API!"}
 
-# Endpoint to generate recommendations
 @app.post("/recommendations", response_model=RecommendationResponse)
 async def generate_recommendations(request: RecommendationRequest):
     # Fetch restaurant data from the Restaurant API
@@ -64,25 +69,60 @@ async def generate_recommendations(request: RecommendationRequest):
     sample_restaurants = matching_restaurants[:5]
     if sample_restaurants:
         restaurant_info = "; ".join(
-            f"{r.get('properties', {}).get('name', 'Unknown')} ({r.get('properties', {}).get('cuisine', 'Unknown')})"
+            f"{r.get('properties', {}).get('name', 'Unknown')} "
+            f"({r.get('properties', {}).get('cuisine', 'Unknown')})"
             for r in sample_restaurants
         )
     else:
         restaurant_info = "No matching restaurants found."
 
-    # Build prompt for the LLM
+    # Build a prompt instructing the LLM to return valid JSON
+    # with exactly 3 recommendations, each with name, short_description, highlight
     prompt = (
-        "User preferences: " + ", ".join(request.preferences) + ". " +
-        "Based on these preferences, provide a list of 3 takeout restaurant recommendations, each with a brief description. " +
-        "Consider ONLY the following available restaurants: " + restaurant_info
+        "User preferences: " + ", ".join(request.preferences) + ". "
+        "Please provide exactly 3 restaurant recommendations in valid JSON format. "
+        "Each recommendation should have: "
+        "- name (string)\n"
+        "- short_description (string)\n"
+        "- highlight (string)\n"
+        "Return only valid JSON (no extra text), and DO NOT include triple backticks."
+        "Example:\n"
+        "[\n"
+        "  {\n"
+        '    "name": "Spice Villa",\n'
+        '    "short_description": "A restaurant offering delicious Indian curries.",\n'
+        '    "highlight": "Excellent naan bread."\n'
+        "  },\n"
+        "  {\n"
+        '    "name": "Masala Hut",\n'
+        '    "short_description": "Great vegetarian options.",\n'
+        '    "highlight": "Homemade paneer."\n'
+        "  },\n"
+        "  {\n"
+        '    "name": "Tandoori Express",\n'
+        '    "short_description": "Quick takeout service.",\n'
+        '    "highlight": "Wide variety of spicy dishes."\n'
+        "  }\n"
+        "]\n"
+        f"Consider ONLY the following available restaurants: {restaurant_info}"
     )
     logger.info("LLM prompt: %s", prompt)
 
     # Generate response from the chosen LLM
     llm_output = await get_llm_response(prompt)
-    logger.info("LLM output: %s", llm_output)
+    logger.info("LLM raw output: %s", llm_output)
 
-    return RecommendationResponse(recommendations=[llm_output])
+    # Parse the JSON returned by the LLM
+    # If parsing fails, return an empty list or handle gracefully
+    try:
+        parsed = json.loads(llm_output)
+        # Validate the parsed data against the RecommendationItem model
+        validated = [RecommendationItem(**item) for item in parsed]
+    except (json.JSONDecodeError, TypeError, ValueError) as e:
+        logger.error("Error parsing LLM JSON output: %s", e)
+        validated = []
+
+    return RecommendationResponse(recommendations=validated)
 
 @app.get("/test-llm")
 async def test_llm():
