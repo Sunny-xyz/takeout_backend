@@ -1,5 +1,36 @@
 <% content_for :page_title, "Restaurant Information" %>
 
-<pre>
-  <%= JSON.pretty_generate(@raw_response) %>
-</pre>
+<h2 class="govuk-heading-l">Restaurants</h2>
+
+<% @raw_response.each_with_index do |restaurant, index| %>
+  <section class="govuk-!-margin-bottom-6">
+    <h3 class="govuk-heading-m govuk-!-margin-bottom-2">
+      <%= restaurant.dig("properties", "name") || "Unknown" %>
+    </h3>
+    
+    <dl class="govuk-summary-list govuk-!-margin-bottom-2">
+      <div class="govuk-summary-list__row">
+        <dt class="govuk-summary-list__key">Cuisine</dt>
+        <dd class="govuk-summary-list__value">
+          <%= restaurant.dig("properties", "cuisine") || "Not specified" %>
+        </dd>
+      </div>
+      
+      <!-- Example of other possible fields:
+      <div class="govuk-summary-list__row">
+        <dt class="govuk-summary-list__key">Address</dt>
+        <dd class="govuk-summary-list__value">
+          <%= restaurant.dig("properties", "addressline1") %><br>
+          <%= restaurant.dig("properties", "addressline2") %><br>
+          <%= restaurant.dig("properties", "city") %><br>
+          <%= restaurant.dig("properties", "postcode") %>
+        </dd>
+      </div>
+      -->
+    </dl>
+    
+    <% unless index == @raw_response.size - 1 %>
+      <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+    <% end %>
+  </section>
+<% end %>
