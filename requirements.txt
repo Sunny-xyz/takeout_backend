@@ -4,3 +4,4 @@ fastapi
 python-dotenv
 httpx
 torch
+openai
