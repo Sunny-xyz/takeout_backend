@@ -2,15 +2,15 @@
 <% content_for :back_link, root_path %>
 
 <%= form_with url: recommendations_path, method: :post, local: true, html: { id: "recommendation-form" } do |form| %>
-  <div>
-  <%= render "govuk_publishing_components/components/input", {
-        label: { text: "Enter your Preferences (separated by comma)" },
-        name: "preferences",
-      } %>
+  <div class="fade-in" style="animation-delay: 0.2s;">
+    <%= render "govuk_publishing_components/components/input", {
+          label: { text: "Enter your Preferences (separated by comma)" },
+          name: "preferences",
+        } %>
   </div>
-<div class="govuk-form-group">
-  <%= render "govuk_publishing_components/components/button", { text: "Submit", type: "submit" } %>
-</div>
+  <div class="govuk-form-group fade-in" style="animation-delay: 0.4s;">
+    <%= render "govuk_publishing_components/components/button", { text: "Submit", type: "submit", html: { class: "animated-button" } } %>
+  </div>
 <% end %>
 
 <div id="loading" class="govuk-!-margin-top-3" style="display:none;">
@@ -24,12 +24,11 @@
   </div>
 </div>
 
-
 <% if @recommendations.present? %>
-  <h2 id="recommendations-heading" class="govuk-heading-m fade-in">Recommendations:</h2>
-  <div id="recommendations-list" class="govuk-list fade-in" style="padding-left: 0;">
-    <% @recommendations.each do |rec| %>
-      <div class="govuk-!-margin-top-5">
+  <h2 id="recommendations-heading" class="govuk-heading-m fade-in" style="animation-delay: 0.2s;">Recommendations:</h2>
+  <div id="recommendations-list" class="govuk-list" style="padding-left: 0;">
+    <% @recommendations.each_with_index do |rec, index| %>
+      <div class="govuk-!-margin-top-5 fade-in" style="animation-delay: <%= 0.4 + (index * 0.2) %>s;">
         <h3 class="govuk-heading-s govuk-!-margin-bottom-1"><%= rec["name"] %></h3>
         <p class="govuk-body govuk-!-margin-bottom-1">
           <strong>Description:</strong> <%= rec["short_description"] %>
@@ -42,21 +41,53 @@
   </div>
 <% end %>
 
+<style>
+.fade-in {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInUp 0.8s forwards ease-out;
+}
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Button interaction animation */
+.animated-button {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.animated-button:active {
+  transform: scale(0.96);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* Fade-out transition for form submission */
+#recommendation-form.fade-out {
+  animation: fadeOut 0.5s forwards ease-out;
+}
+
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+</style>
 
 <script>
   document.addEventListener("DOMContentLoaded", function() {
     var form = document.getElementById("recommendation-form");
-    form.addEventListener("submit", function() {
+    form.addEventListener("submit", function(event) {
+      event.preventDefault();
+      form.classList.add("fade-out");
       document.getElementById("loading").style.display = "block";
+      setTimeout(function() {
+        form.submit();
+      }, 500);
     });
-    
-    var heading = document.getElementById("recommendations-heading");
-    var recommendationsList = document.getElementById("recommendations-list");
-    
-    setTimeout(function() {
-      if (heading) { heading.classList.add("visible"); }
-      if (recommendationsList) { recommendationsList.classList.add("visible"); }
-    }, 100);
   });
 </script>
-

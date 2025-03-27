@@ -6,7 +6,7 @@
       <p class="govuk-body-l fade-in" style="animation-delay: 0.2s;">
         Get personalized takeout recommendations with just a few clicks. Find the best local restaurants tailored to your taste!
       </p>
-      <%= link_to "Get Started", new_recommendation_path, class: "govuk-button animated-button fade-in", style: "animation-delay: 0.4s;" %>
+      <%= link_to "Get Started", new_recommendation_path, class: "govuk-button animated-button fade-in", style: "animation-delay: 0.4s;", id: "get-started-btn" %>
     </div>
   </section>
 
@@ -49,4 +49,31 @@
   transform: scale(0.96);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
+
+/* Fade-out transition */
+.landing-page.fade-out {
+  animation: fadeOut 0.5s forwards ease-out;
+}
+
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const button = document.getElementById('get-started-btn');
+  const landingPage = document.querySelector('.landing-page');
+
+  button.addEventListener('click', function(event) {
+    event.preventDefault();
+    landingPage.classList.add('fade-out');
+    setTimeout(() => {
+      window.location.href = button.getAttribute('href');
+    }, 500);
+  });
+});
+</script>
