@@ -41,53 +41,18 @@
   </div>
 <% end %>
 
-<style>
-.fade-in {
-  opacity: 0;
-  transform: translateY(20px);
-  animation: fadeInUp 0.8s forwards ease-out;
-}
-
-@keyframes fadeInUp {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Button interaction animation */
-.animated-button {
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.animated-button:active {
-  transform: scale(0.96);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-}
-
-/* Fade-out transition for form submission */
-#recommendation-form.fade-out {
-  animation: fadeOut 0.5s forwards ease-out;
-}
-
-@keyframes fadeOut {
-  to {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-}
-</style>
-
 <script>
   document.addEventListener("DOMContentLoaded", function() {
     var form = document.getElementById("recommendation-form");
-    form.addEventListener("submit", function(event) {
-      event.preventDefault();
-      form.classList.add("fade-out");
-      document.getElementById("loading").style.display = "block";
-      setTimeout(function() {
-        form.submit();
-      }, 500);
-    });
+    if (form) {
+      form.addEventListener("submit", function(event) {
+        event.preventDefault();
+        form.classList.add("fade-out");
+        document.getElementById("loading").style.display = "block";
+        setTimeout(function() {
+          form.submit();
+        }, 500);
+      });
+    }
   });
 </script>
