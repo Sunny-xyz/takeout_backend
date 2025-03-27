@@ -11,27 +11,29 @@
         href: restaurants_path,
         active: current_page?(restaurants_path)
       }
-      # Add more items as desired.
     ]
   } %>
-  <div class="govuk-width-container">
-  <div id="main-content">
-  <% if content_for?(:back_link) %>
-    <div class="fade-in" style="animation-delay: 0.1s;">
-      <%= render "govuk_publishing_components/components/back_link", href: yield(:back_link) %>
+
+  <div class="govuk-width-container" style="position: relative;">
+    <div id="main-content">
+      <% if content_for?(:back_link) %>
+        <div class="fade-in" style="animation-delay: 0.1s;">
+          <%= render "govuk_publishing_components/components/back_link", href: yield(:back_link) %>
+        </div>
+      <% end %>
+
+      <main class="govuk-main-wrapper">
+        <% if content_for?(:page_title) %>
+          <h1 class="govuk-heading-xl fade-in" id="page-title"><%= yield(:page_title) %></h1>
+        <% end %>
+        <%= yield %>
+      </main>
     </div>
-  <% end %>
-
-  <main class="govuk-main-wrapper">
-    <% if content_for?(:page_title) %>
-      <h1 class="govuk-heading-xl fade-in" id="page-title"><%= yield(:page_title) %></h1>
-    <% end %>
-    <%= yield %>
-  </main>
   </div>
 
+  <div class="footer-container fade-in-footer">
+    <%= render "govuk_publishing_components/components/layout_footer", {} %>
   </div>
-  <%= render "govuk_publishing_components/components/layout_footer", {} %>
 <% end %>
 
 <style>
@@ -69,11 +71,34 @@
   transform: scale(0.96);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
+
+/* Spinner & loading overlay */
+#loading {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 10;
+}
+
+#loading.visible {
+  opacity: 1;
+}
+
+#recommendation-form.fade-out {
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  height: 120px;
+  overflow: hidden;
+}
+
+
 </style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // Fade out page content on link navigation (except target/_blank or ctrl+click)
   document.querySelectorAll('a').forEach(link => {
     link.addEventListener('click', function(event) {
       if (!event.ctrlKey && !event.metaKey && !link.target && link.href) {
